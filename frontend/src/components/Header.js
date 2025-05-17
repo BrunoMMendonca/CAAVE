@@ -88,6 +88,9 @@ const Header = () => {
         name: ''
       });
       
+      // Remove from localStorage
+      localStorage.removeItem('walletInfo');
+      
       console.log('Wallet disconnected');
     } catch (error) {
       console.error('Failed to disconnect wallet:', error);
