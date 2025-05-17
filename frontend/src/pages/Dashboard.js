@@ -157,7 +157,7 @@ const Dashboard = () => {
             </Link>
             {!isWalletConnected && (
               <button 
-                onClick={() => document.querySelector('button:contains("Connect Wallet")').click()}
+                onClick={() => document.querySelector('header button:last-child').click()}
                 className="bg-darkBlue px-6 py-3 rounded-lg text-lightText font-medium border border-gray-700 hover:border-primary"
               >
                 Connect Wallet
