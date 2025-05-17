@@ -40,14 +40,23 @@ export const MarketProvider = ({ children }) => {
   const formatMarketData = (market) => {
     if (!market) return null;
     
-    // Convert string amounts to numbers for display
-    return {
-      ...market,
-      totalSupply: parseInt(market.total_supply) / Math.pow(10, market.decimals),
-      totalBorrow: parseInt(market.total_borrow) / Math.pow(10, market.decimals),
-      liquidity: parseInt(market.liquidity) / Math.pow(10, market.decimals),
-      // Add any other formatting needed
-    };
+    try {
+      // Calculate display values based on decimals
+      const decimals = market.decimals || 0;
+      const totalSupply = parseFloat(market.total_supply || '0') / Math.pow(10, decimals);
+      const totalBorrow = parseFloat(market.total_borrow || '0') / Math.pow(10, decimals);
+      const liquidity = parseFloat(market.liquidity || '0') / Math.pow(10, decimals);
+      
+      return {
+        ...market,
+        totalSupply,
+        totalBorrow,
+        liquidity
+      };
+    } catch (error) {
+      console.error('Error formatting market data:', error);
+      return market;
+    }
   };
 
   return (
