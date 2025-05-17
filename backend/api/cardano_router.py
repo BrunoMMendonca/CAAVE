@@ -96,6 +96,18 @@ async def get_tokens(
         logger.error(f"Error getting tokens: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting tokens: {str(e)}")
 
+@router.get("/address/{address}")
+async def get_address_info(
+    address: str,
+    cardano_service: CardanoService = Depends(get_cardano_service)
+) -> Dict[str, Any]:
+    """Get information about a wallet address including balance"""
+    try:
+        return await cardano_service.get_wallet_balance(address)
+    except Exception as e:
+        logger.error(f"Error getting address info: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting address info: {str(e)}")
+
 @router.get("/latest-blocks")
 async def get_latest_blocks(
     limit: int = 10,
