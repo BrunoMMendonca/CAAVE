@@ -381,6 +381,60 @@ const Dashboard = () => {
         </div>
       )}
       
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="card p-6"
+        >
+          <h3 className="text-lg font-semibold text-lightText mb-4">Total Markets</h3>
+          <div className="text-3xl font-bold text-primary">
+            {marketStats ? marketStats.markets_count : 0}
+          </div>
+          <div className="text-sm text-mediumText mt-2">Active markets available</div>
+        </motion.div>
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="card p-6"
+        >
+          <h3 className="text-lg font-semibold text-lightText mb-4">Total Supply</h3>
+          <div className="text-3xl font-bold text-primary">
+            {marketStats && marketStats.formatted ? marketStats.formatted.total_supply : '0'}
+          </div>
+          <div className="text-sm text-mediumText mt-2">Avg. APY: {marketStats && marketStats.formatted ? marketStats.formatted.avg_supply_rate : '0%'}</div>
+        </motion.div>
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="card p-6"
+        >
+          <h3 className="text-lg font-semibold text-lightText mb-4">Total Borrow</h3>
+          <div className="text-3xl font-bold text-secondary">
+            {marketStats && marketStats.formatted ? marketStats.formatted.total_borrow : '0'}
+          </div>
+          <div className="text-sm text-mediumText mt-2">Avg. APY: {marketStats && marketStats.formatted ? marketStats.formatted.avg_borrow_rate : '0%'}</div>
+        </motion.div>
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="card p-6"
+        >
+          <h3 className="text-lg font-semibold text-lightText mb-4">Utilization Rate</h3>
+          <div className="text-3xl font-bold text-accentTeal">
+            {marketStats ? (marketStats.total_borrow / marketStats.total_supply * 100).toFixed(2) + '%' : '0%'}
+          </div>
+          <div className="text-sm text-mediumText mt-2">Market efficiency</div>
+        </motion.div>
+      </div>
+      
       <div className="mb-10">
         <h2 className="section-title">Top Markets</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
