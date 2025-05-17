@@ -43,7 +43,7 @@ async def get_user_position(
         
         # Get address info from Cardano blockchain
         try:
-            address_info = await cardano_service.get_address_info(address)
+            address_info = await cardano_service.get_wallet_balance(address)
         except Exception as e:
             logger.warning(f"Could not get blockchain data for address {address}: {e}")
             address_info = {
