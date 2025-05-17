@@ -76,7 +76,7 @@ class AaveADABackendTester:
 
 def main():
     # Get backend URL from environment variable or use default
-    backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://0236c0e3-2b50-4c09-9f2d-8b7c74f066a1.preview.emergentagent.com')
+    backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://32a35358-7af5-418d-b2ae-15f2febbab87.preview.emergentagent.com')
     
     print(f"Testing backend API at: {backend_url}")
     
