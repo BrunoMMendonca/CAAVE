@@ -351,7 +351,10 @@ const Dashboard = () => {
         <div className="card p-8 mb-10 text-center">
           <h2 className="text-2xl font-bold text-lightText mb-4">Connect your wallet to get started</h2>
           <p className="text-mediumText mb-6">Connect your Cardano wallet to start supplying and borrowing assets</p>
-          <button className="gradient-button px-6 py-3 rounded-lg text-white font-medium">
+          <button 
+            className="gradient-button px-6 py-3 rounded-lg text-white font-medium"
+            onClick={() => document.querySelector('header button:last-child').click()}
+          >
             Connect Wallet
           </button>
         </div>
