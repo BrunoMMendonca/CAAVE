@@ -95,3 +95,15 @@ async def get_tokens(
     except Exception as e:
         logger.error(f"Error getting tokens: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting tokens: {str(e)}")
+
+@router.get("/latest-blocks")
+async def get_latest_blocks(
+    limit: int = 10,
+    cardano_service: CardanoService = Depends(get_cardano_service)
+) -> List[Dict[str, Any]]:
+    """Get the latest blocks from the Cardano blockchain"""
+    try:
+        return await cardano_service.get_latest_blocks(limit=limit)
+    except Exception as e:
+        logger.error(f"Error getting latest blocks: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting latest blocks: {str(e)}")
