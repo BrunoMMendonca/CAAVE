@@ -30,10 +30,15 @@ ChartJS.register(
 
 const Dashboard = () => {
   // Get markets data
-  const { markets, loading: marketsLoading } = useMarkets();
+  const { 
+    markets, 
+    loading: marketsLoading, 
+    marketStats, 
+    statsLoading 
+  } = useMarkets();
   const { userPosition, loading: userLoading } = useUser();
   
-  if (marketsLoading) {
+  if (marketsLoading || statsLoading) {
     return (
       <div className="container px-4 py-8">
         <div className="text-center">
