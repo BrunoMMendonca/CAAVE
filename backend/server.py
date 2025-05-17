@@ -9,13 +9,18 @@ from pydantic import BaseModel, Field
 from typing import List
 import uuid
 from datetime import datetime
+import sys
 
+# Add the current directory to the Python path
+ROOT_DIR = Path(__file__).parent
+sys.path.append(str(ROOT_DIR))
+
+# Import routers
 from api.cardano_router import router as cardano_router
 from api.market_router import router as market_router
 from api.user_router import router as user_router
 
 
-ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
