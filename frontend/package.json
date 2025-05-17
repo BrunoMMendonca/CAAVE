@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@cardano-foundation/cardano-connect-with-wallet": "^0.2.14",
     "@heroicons/react": "^2.2.0",
     "axios": "^1.8.4",
     "chart.js": "^4.4.9",
