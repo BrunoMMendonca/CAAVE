@@ -1,39 +1,39 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+import sys
 import os
-import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
+import logging
 import uuid
 from datetime import datetime
-import sys
+from typing import List
 
-# Add the current directory to the Python path
-ROOT_DIR = Path(__file__).parent
-sys.path.append(str(ROOT_DIR))
+from fastapi import FastAPI, APIRouter
+from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel, Field
 
-# Import routers
-from api.cardano_router import router as cardano_router
-from api.market_router import router as market_router
-from api.user_router import router as user_router
+# Add the current directory to the Python path to make imports work
+sys.path.insert(0, str(Path(__file__).parent.resolve()))
 
-
-load_dotenv(ROOT_DIR / '.env')
+# Import settings
+from settings import (
+    BASE_DIR, 
+    MONGO_URL, 
+    DB_NAME, 
+    API_PREFIX, 
+    CORS_ORIGINS, 
+    CORS_METHODS, 
+    CORS_HEADERS
+)
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+client = AsyncIOMotorClient(MONGO_URL)
+db = client[DB_NAME]
 
 # Create the main app without a prefix
 app = FastAPI()
 
 # Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
+api_router = APIRouter(prefix=API_PREFIX)
 
 # Define Models
 class StatusCheck(BaseModel):
@@ -47,7 +47,7 @@ class StatusCheckCreate(BaseModel):
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "AaveADA API", "status": "online"}
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
@@ -62,6 +62,11 @@ async def get_status_checks():
     return [StatusCheck(**status_check) for status_check in status_checks]
 
 # Include all routers
+# We import these here to avoid circular imports
+from api.cardano_router import router as cardano_router
+from api.market_router import router as market_router
+from api.user_router import router as user_router
+
 api_router.include_router(cardano_router)
 api_router.include_router(market_router)
 api_router.include_router(user_router)
@@ -69,12 +74,13 @@ api_router.include_router(user_router)
 # Include the router in the main app
 app.include_router(api_router)
 
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=CORS_ORIGINS,
+    allow_methods=CORS_METHODS,
+    allow_headers=CORS_HEADERS,
 )
 
 # Configure logging
