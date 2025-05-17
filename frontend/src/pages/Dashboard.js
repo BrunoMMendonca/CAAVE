@@ -438,13 +438,25 @@ const Dashboard = () => {
       <div className="mb-10">
         <h2 className="section-title">Top Markets</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {markets.slice(0, 4).map(asset => (
-            <AssetCard 
-              key={asset.id} 
-              asset={asset} 
-              type={Math.random() > 0.5 ? 'supply' : 'borrow'} 
-            />
-          ))}
+          {marketStats && marketStats.top_markets && marketStats.top_markets.length > 0 
+            ? marketStats.top_markets.map(topMarket => {
+                const market = markets.find(m => m.id === topMarket.id);
+                return market ? (
+                  <AssetCard 
+                    key={market.id} 
+                    asset={market} 
+                    type={Math.random() > 0.5 ? 'supply' : 'borrow'} 
+                  />
+                ) : null;
+              })
+            : markets.slice(0, 4).map(asset => (
+                <AssetCard 
+                  key={asset.id} 
+                  asset={asset} 
+                  type={Math.random() > 0.5 ? 'supply' : 'borrow'} 
+                />
+              ))
+          }
         </div>
         <div className="mt-6 text-center">
           <Link 
