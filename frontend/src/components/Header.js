@@ -16,7 +16,7 @@ const Header = () => {
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [walletInfo, setWalletInfo] = useState({
     connected: false,
-    wallet: null,
+    api: null,
     address: null,
     displayAddress: '',
     balance: null,
@@ -35,20 +35,20 @@ const Header = () => {
   const handleSelectWallet = async (walletName) => {
     try {
       // Connect to selected wallet
-      const wallet = await connectWallet(walletName);
+      const api = await connectWallet(walletName);
       
       // Get wallet address
-      const address = await getWalletAddress(wallet);
+      const address = await getWalletAddress(api);
       const displayAddress = formatWalletAddress(address);
       
       // Get wallet balance
-      const balance = await getWalletBalance(wallet);
+      const balance = await getWalletBalance(api);
       const displayBalance = formatAdaAmount(balance);
       
       // Update wallet info
       const updatedWalletInfo = {
         connected: true,
-        wallet,
+        api,
         address,
         displayAddress,
         balance,
@@ -58,10 +58,10 @@ const Header = () => {
       
       setWalletInfo(updatedWalletInfo);
       
-      // Store in localStorage (excluding wallet object which can't be serialized)
+      // Store in localStorage (excluding api object which can't be serialized)
       const storageWalletInfo = {
         ...updatedWalletInfo,
-        wallet: null
+        api: null
       };
       localStorage.setItem('walletInfo', JSON.stringify(storageWalletInfo));
       
@@ -74,13 +74,11 @@ const Header = () => {
 
   const handleDisconnect = async () => {
     try {
-      if (walletInfo.wallet) {
-        await disconnectWallet(walletInfo.wallet);
-      }
+      await disconnectWallet();
       
       setWalletInfo({
         connected: false,
-        wallet: null,
+        api: null,
         address: null,
         displayAddress: '',
         balance: null,
@@ -99,34 +97,31 @@ const Header = () => {
 
   // Check localStorage for wallet info on mount
   useEffect(() => {
-    try {
-      const storedWalletInfo = localStorage.getItem('walletInfo');
-      if (storedWalletInfo) {
-        const parsedInfo = JSON.parse(storedWalletInfo);
-        if (parsedInfo && parsedInfo.connected) {
-          // We have stored wallet info, but need to reconnect
-          console.log('Found stored wallet info, attempting to reconnect...');
-          if (parsedInfo.name && window.cardano && window.cardano[parsedInfo.name]) {
-            handleSelectWallet(parsedInfo.name).catch(error => {
-              console.error('Failed to auto-reconnect wallet:', error);
-              localStorage.removeItem('walletInfo');
-            });
+    const checkForWallets = () => {
+      try {
+        const storedWalletInfo = localStorage.getItem('walletInfo');
+        if (storedWalletInfo) {
+          const parsedInfo = JSON.parse(storedWalletInfo);
+          if (parsedInfo && parsedInfo.connected) {
+            // We have stored wallet info, but need to reconnect
+            console.log('Found stored wallet info, attempting to reconnect...');
+            if (parsedInfo.name && window.cardano && window.cardano[parsedInfo.name]) {
+              handleSelectWallet(parsedInfo.name).catch(error => {
+                console.error('Failed to auto-reconnect wallet:', error);
+                localStorage.removeItem('walletInfo');
+              });
+            }
           }
         }
-      }
-    } catch (error) {
-      console.error('Error checking stored wallet info:', error);
-    }
-  }, []);
-
-  // Clean up function for when component unmounts
-  useEffect(() => {
-    return () => {
-      if (walletInfo.wallet) {
-        disconnectWallet(walletInfo.wallet).catch(console.error);
+      } catch (error) {
+        console.error('Error checking stored wallet info:', error);
       }
     };
-  }, [walletInfo.wallet]);
+
+    // Check after a short delay to allow for wallet extensions to initialize
+    const timeoutId = setTimeout(checkForWallets, 1000);
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-darkerBlue z-50 shadow-lg border-b border-gray-800">

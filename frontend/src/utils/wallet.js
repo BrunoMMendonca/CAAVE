@@ -1,8 +1,3 @@
-import { 
-  CardanoWalletSelector, 
-  WalletDisconnectedError 
-} from '@cardano-foundation/cardano-connect-with-wallet';
-
 // List of supported wallet names
 export const SUPPORTED_WALLETS = [
   'nami',
@@ -42,41 +37,29 @@ export const connectWallet = async (walletName) => {
       throw new Error(`${walletName} wallet is not available`);
     }
 
-    const walletSelector = new CardanoWalletSelector();
-    const wallet = await walletSelector.connect({
-      walletName: walletName,
-    });
-
-    return wallet;
+    const wallet = window.cardano[walletName];
+    const api = await wallet.enable();
+    
+    return api;
   } catch (error) {
     console.error('Error connecting to wallet:', error);
     throw error;
   }
 };
 
-// Disconnect from wallet
-export const disconnectWallet = async (wallet) => {
-  try {
-    if (!wallet) {
-      throw new WalletDisconnectedError('No wallet to disconnect');
-    }
-    
-    await wallet.disconnect();
-    return true;
-  } catch (error) {
-    console.error('Error disconnecting wallet:', error);
-    throw error;
-  }
+// Disconnect from wallet (placeholder, as native wallets don't have disconnect)
+export const disconnectWallet = async () => {
+  return true;
 };
 
 // Get wallet balance
-export const getWalletBalance = async (wallet) => {
+export const getWalletBalance = async (api) => {
   try {
-    if (!wallet) {
-      throw new WalletDisconnectedError('Wallet not connected');
+    if (!api) {
+      throw new Error('Wallet not connected');
     }
 
-    const balance = await wallet.getBalance();
+    const balance = await api.getBalance();
     return balance;
   } catch (error) {
     console.error('Error getting wallet balance:', error);
@@ -85,13 +68,13 @@ export const getWalletBalance = async (wallet) => {
 };
 
 // Get wallet address
-export const getWalletAddress = async (wallet) => {
+export const getWalletAddress = async (api) => {
   try {
-    if (!wallet) {
-      throw new WalletDisconnectedError('Wallet not connected');
+    if (!api) {
+      throw new Error('Wallet not connected');
     }
 
-    const addresses = await wallet.getUsedAddresses();
+    const addresses = await api.getUsedAddresses();
     return addresses[0] || null;
   } catch (error) {
     console.error('Error getting wallet address:', error);
