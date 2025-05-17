@@ -55,16 +55,13 @@ const MarketTable = ({ markets, title }) => {
     if (typeof value === 'string') {
       // Convert string to number but preserve decimal precision
       const number = parseFloat(value);
-      if (isNaN(number)) return value;
-      return number.toLocaleString(undefined, {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
-      });
+      if (isNaN(number)) return '0';
+      return number.toLocaleString();
     }
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    });
+    if (typeof value === 'number') {
+      return value.toLocaleString();
+    }
+    return '0';
   };
 
   return (
