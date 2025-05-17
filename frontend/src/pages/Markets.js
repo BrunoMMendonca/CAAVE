@@ -1,27 +1,48 @@
 import React, { useState } from 'react';
 import MarketTable from '../components/MarketTable';
-import { mockMarkets } from '../data/mockData';
+import { useMarkets } from '../context/MarketContext';
 
 const Markets = () => {
+  const { markets, loading, error } = useMarkets();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   
-  const filteredMarkets = mockMarkets.filter(market => {
+  if (loading) {
+    return (
+      <div className="container px-4 py-8">
+        <div className="text-center">
+          <p className="text-xl text-lightText">Loading markets...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    console.error("Error loading markets:", error);
+  }
+  
+  const filteredMarkets = markets.filter(market => {
     // Apply search filter
     const matchesSearch = market.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           market.symbol.toLowerCase().includes(searchQuery.toLowerCase());
     
     // Apply type filter
     if (filterType === 'all') return matchesSearch;
-    if (filterType === 'stablecoins') return matchesSearch && market.isStableCoin;
-    if (filterType === 'crypto') return matchesSearch && !market.isStableCoin;
+    if (filterType === 'stablecoins') {
+      const stablecoins = ['DJED', 'iUSD', 'USDA', 'USDC', 'USDT'];
+      return matchesSearch && stablecoins.includes(market.symbol);
+    }
+    if (filterType === 'crypto') {
+      const stablecoins = ['DJED', 'iUSD', 'USDA', 'USDC', 'USDT'];
+      return matchesSearch && !stablecoins.includes(market.symbol);
+    }
     
     return matchesSearch;
   });
   
   // Calculate totals
-  const totalMarketSize = mockMarkets.reduce((total, market) => total + market.totalSupplyUSD, 0);
-  const totalBorrowed = mockMarkets.reduce((total, market) => total + market.totalBorrowUSD, 0);
+  const totalMarketSize = markets.reduce((total, market) => total + parseFloat(market.total_supply_usd || 0), 0);
+  const totalBorrowed = markets.reduce((total, market) => total + parseFloat(market.total_borrow_usd || 0), 0);
   
   return (
     <div className="container px-4 py-8">
@@ -72,11 +93,17 @@ const Markets = () => {
         
         <div className="card p-6">
           <h3 className="text-lg text-mediumText mb-2">Total Assets</h3>
-          <p className="text-3xl font-bold text-lightText">{mockMarkets.length}</p>
+          <p className="text-3xl font-bold text-lightText">{markets.length}</p>
         </div>
       </div>
       
-      <MarketTable markets={filteredMarkets} title="All Markets" />
+      {filteredMarkets.length > 0 ? (
+        <MarketTable markets={filteredMarkets} title="All Markets" />
+      ) : (
+        <div className="card p-6 text-center mb-8">
+          <p className="text-mediumText">No markets found matching your search.</p>
+        </div>
+      )}
       
       <div className="card p-6 mb-8">
         <h3 className="text-lg font-semibold text-lightText mb-4">How it works</h3>
