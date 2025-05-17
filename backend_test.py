@@ -73,6 +73,44 @@ class AaveADABackendTester:
             "api/status",
             200
         )
+        
+    def test_market_stats_overview(self):
+        """Test the market stats overview endpoint"""
+        return self.run_test(
+            "Market Stats Overview",
+            "GET",
+            "api/markets/stats/overview",
+            200
+        )
+        
+    def test_get_markets(self):
+        """Test getting all markets"""
+        return self.run_test(
+            "Get All Markets",
+            "GET",
+            "api/markets",
+            200
+        )
+        
+    def test_cardano_latest_blocks(self):
+        """Test getting latest Cardano blocks"""
+        return self.run_test(
+            "Cardano Latest Blocks",
+            "GET",
+            "api/cardano/latest-blocks",
+            200
+        )
+        
+    def test_cardano_address_info(self):
+        """Test getting Cardano address info"""
+        # Using a random test address
+        test_address = "addr1qxck6uqvj0k6wgyrwmvp9um7ucvd5g4csnu3dmxh4ype95lh8nyj9q0kvddwzrwp6t3w9vw7m3rpcf9qcgwf6qsj2pnqnhpj2t"
+        return self.run_test(
+            "Cardano Address Info",
+            "GET",
+            f"api/cardano/address/{test_address}",
+            200
+        )
 
 def main():
     # Get backend URL from environment variable or use default
@@ -100,6 +138,36 @@ def main():
         print("❌ Get status checks test failed")
     else:
         print(f"✅ Retrieved {len(status_checks)} status checks")
+    
+    # Test new market stats endpoint
+    market_stats_success, market_stats = tester.test_market_stats_overview()
+    if not market_stats_success:
+        print("❌ Market stats overview test failed")
+    else:
+        print(f"✅ Retrieved market stats: {json.dumps(market_stats, indent=2)}")
+    
+    # Test markets endpoint
+    markets_success, markets = tester.test_get_markets()
+    if not markets_success:
+        print("❌ Get markets test failed")
+    else:
+        print(f"✅ Retrieved {len(markets)} markets")
+    
+    # Test Cardano latest blocks endpoint
+    # Note: This might fail with 403 due to invalid API key as mentioned in the request
+    cardano_blocks_success, cardano_blocks = tester.test_cardano_latest_blocks()
+    if not cardano_blocks_success:
+        print("❌ Cardano latest blocks test failed (This might be expected due to invalid API key)")
+    else:
+        print(f"✅ Retrieved {len(cardano_blocks)} Cardano blocks")
+    
+    # Test Cardano address info endpoint
+    # Note: This might fail with 403 due to invalid API key as mentioned in the request
+    cardano_address_success, cardano_address = tester.test_cardano_address_info()
+    if not cardano_address_success:
+        print("❌ Cardano address info test failed (This might be expected due to invalid API key)")
+    else:
+        print(f"✅ Retrieved Cardano address info")
     
     # Print results
     print(f"\n📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
