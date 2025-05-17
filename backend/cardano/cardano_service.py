@@ -261,6 +261,108 @@ class CardanoService:
             logger.error(f"BlockFrost API error: {e}")
             raise
             
+    async def get_stake_pools(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get a list of stake pools"""
+        try:
+            # Get all pools
+            pools = self.api.pools()[:limit]
+            
+            result = []
+            for pool_id in pools:
+                # Get pool info
+                pool = self.api.pool(pool_id)
+                
+                # Get pool metadata
+                try:
+                    metadata = self.api.pool_metadata(pool_id)
+                    metadata_dict = {
+                        "name": metadata.name,
+                        "description": metadata.description,
+                        "ticker": metadata.ticker,
+                        "homepage": metadata.homepage
+                    }
+                except:
+                    metadata_dict = {}
+                
+                result.append({
+                    "pool_id": pool_id,
+                    "active_stake": pool.active_stake,
+                    "live_stake": pool.live_stake,
+                    "live_saturated": pool.live_saturated,
+                    "blocks_minted": pool.blocks_minted,
+                    "live_delegators": pool.live_delegators,
+                    "metadata": metadata_dict
+                })
+            
+            return result
+        except ApiError as e:
+            logger.error(f"BlockFrost API error: {e}")
+            raise
+            
+    async def get_wallet_balance(self, address: str) -> Dict[str, Any]:
+        """Get the balance of a wallet address"""
+        try:
+            # Get address info
+            addr_info = self.api.address(address)
+            
+            # Get address UTXOs
+            utxos = self.api.address_utxos(address)
+            
+            # Calculate balance
+            balance = {
+                "lovelace": 0  # ADA in lovelace
+            }
+            
+            # Process UTXOs
+            for utxo in utxos:
+                for amount in utxo.amount:
+                    unit = amount.unit
+                    quantity = int(amount.quantity)
+                    
+                    if unit in balance:
+                        balance[unit] += quantity
+                    else:
+                        balance[unit] = quantity
+            
+            # Get token details for non-ADA tokens
+            token_details = {}
+            for unit in balance:
+                if unit != "lovelace":
+                    try:
+                        # Extract policy ID and asset name
+                        policy_id = unit[:56]
+                        asset_name_hex = unit[56:]
+                        
+                        # Get asset info
+                        asset_info = self.api.asset(unit)
+                        
+                        # Try to get metadata
+                        try:
+                            metadata = asset_info.metadata
+                        except:
+                            metadata = None
+                        
+                        token_details[unit] = {
+                            "policy_id": policy_id,
+                            "asset_name_hex": asset_name_hex,
+                            "quantity": balance[unit],
+                            "metadata": metadata
+                        }
+                    except:
+                        # If we can't get details, just store basic info
+                        token_details[unit] = {
+                            "quantity": balance[unit]
+                        }
+            
+            return {
+                "address": address,
+                "balance": balance,
+                "token_details": token_details
+            }
+        except ApiError as e:
+            logger.error(f"BlockFrost API error: {e}")
+            raise
+            
     async def get_latest_blocks(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get a list of the latest blocks"""
         try:
