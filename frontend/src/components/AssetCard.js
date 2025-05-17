@@ -10,6 +10,26 @@ const AssetCard = ({ asset, type }) => {
     navigate(`/asset/${asset.id}`);
   };
   
+  // Calculate display values based on decimals
+  const formatAssetAmount = (amount) => {
+    if (!amount) return '0';
+    const value = typeof amount === 'string' ? parseFloat(amount) : amount;
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+  
+  // Get the appropriate APY based on card type
+  const apy = isSupply ? asset.supply_apy : asset.borrow_apy;
+  
+  // Calculate available to borrow
+  const availableToBorrow = parseFloat(asset.liquidity) / Math.pow(10, asset.decimals);
+  
+  // For your supply/borrow, we'd need user data
+  // This is mocked for now - in a real app, you'd get this from user context
+  const yourAmount = 0;
+  
   return (
     <motion.div 
       whileHover={{ y: -5 }}
@@ -19,7 +39,7 @@ const AssetCard = ({ asset, type }) => {
     >
       <div className="flex items-center mb-4">
         <img 
-          src={asset.icon} 
+          src={asset.logo_url} 
           alt={asset.name}
           className="w-10 h-10 rounded-full mr-3"
         />
@@ -38,7 +58,7 @@ const AssetCard = ({ asset, type }) => {
             {isSupply ? 'Supply APY' : 'Borrow APY'}
           </span>
           <span className="text-lightText font-medium">
-            {isSupply ? asset.supplyAPY : asset.borrowAPY}%
+            {apy}%
           </span>
         </div>
         
@@ -48,7 +68,7 @@ const AssetCard = ({ asset, type }) => {
               Available to borrow
             </span>
             <span className="text-lightText font-medium">
-              {asset.availableToBorrow} {asset.symbol}
+              {formatAssetAmount(availableToBorrow)} {asset.symbol}
             </span>
           </div>
         )}
@@ -58,7 +78,7 @@ const AssetCard = ({ asset, type }) => {
             {isSupply ? 'Your supply' : 'Your borrow'}
           </span>
           <span className="text-lightText font-medium">
-            {isSupply ? asset.yourSupply : asset.yourBorrow} {asset.symbol}
+            {formatAssetAmount(yourAmount)} {asset.symbol}
           </span>
         </div>
       </div>
