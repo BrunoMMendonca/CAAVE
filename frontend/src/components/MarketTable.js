@@ -74,6 +74,7 @@ const MarketTable = ({ markets, title }) => {
               >
                 Borrow APY{getSortIndicator('borrowAPY')}
               </th>
+              <th className="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -109,6 +110,17 @@ const MarketTable = ({ markets, title }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
                   <div className="text-lightText font-medium">{market.borrowAPY}%</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRowClick(market);
+                    }}
+                    className="text-primary hover:underline"
+                  >
+                    Details →
+                  </button>
                 </td>
               </tr>
             ))}

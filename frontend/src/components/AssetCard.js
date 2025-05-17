@@ -1,14 +1,21 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const AssetCard = ({ asset, type }) => {
+  const navigate = useNavigate();
   const isSupply = type === 'supply';
+  
+  const handleCardClick = () => {
+    navigate(`/asset/${asset.id}`);
+  };
   
   return (
     <motion.div 
       whileHover={{ y: -5 }}
       transition={{ duration: 0.3 }}
-      className="card hover-card p-6"
+      className="card hover-card p-6 cursor-pointer"
+      onClick={handleCardClick}
     >
       <div className="flex items-center mb-4">
         <img 
@@ -62,6 +69,10 @@ const AssetCard = ({ asset, type }) => {
             ? 'bg-primary hover:bg-opacity-90' 
             : 'bg-secondary hover:bg-opacity-90'
         }`}
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate(`/asset/${asset.id}`);
+        }}
       >
         {isSupply ? 'Supply' : 'Borrow'}
       </button>
