@@ -260,3 +260,42 @@ class CardanoService:
         except ApiError as e:
             logger.error(f"BlockFrost API error: {e}")
             raise
+            
+    async def get_latest_blocks(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get a list of the latest blocks"""
+        try:
+            # Get the latest block
+            latest_block = self.api.block_latest()
+            
+            result = []
+            current_hash = latest_block.hash
+            
+            # Fetch the latest blocks up to the limit
+            for _ in range(limit):
+                # Get block info
+                block = self.api.block(current_hash)
+                
+                block_info = {
+                    "hash": block.hash,
+                    "height": block.height,
+                    "time": block.time,
+                    "slot": block.slot,
+                    "epoch": block.epoch,
+                    "epoch_slot": block.epoch_slot,
+                    "size": block.size,
+                    "tx_count": block.tx_count,
+                    "previous_block": block.previous_block,
+                }
+                
+                result.append(block_info)
+                
+                # Move to the previous block
+                if block.previous_block:
+                    current_hash = block.previous_block
+                else:
+                    break
+            
+            return result
+        except ApiError as e:
+            logger.error(f"BlockFrost API error: {e}")
+            raise
