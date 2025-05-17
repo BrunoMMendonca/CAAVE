@@ -46,7 +46,7 @@ const Header = () => {
       const displayBalance = formatAdaAmount(balance);
       
       // Update wallet info
-      setWalletInfo({
+      const updatedWalletInfo = {
         connected: true,
         wallet,
         address,
@@ -54,7 +54,16 @@ const Header = () => {
         balance,
         displayBalance,
         name: walletName
-      });
+      };
+      
+      setWalletInfo(updatedWalletInfo);
+      
+      // Store in localStorage (excluding wallet object which can't be serialized)
+      const storageWalletInfo = {
+        ...updatedWalletInfo,
+        wallet: null
+      };
+      localStorage.setItem('walletInfo', JSON.stringify(storageWalletInfo));
       
       console.log(`Connected to ${walletName} wallet: ${displayAddress}`);
     } catch (error) {
