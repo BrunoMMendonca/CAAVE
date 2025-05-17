@@ -112,6 +112,22 @@ const Dashboard = () => {
     },
   };
   
+  // Get wallet info from localStorage if available
+  const getWalletInfo = () => {
+    try {
+      const walletInfoStr = localStorage.getItem('walletInfo');
+      if (walletInfoStr) {
+        return JSON.parse(walletInfoStr);
+      }
+    } catch (e) {
+      console.error('Error parsing wallet info:', e);
+    }
+    return null;
+  };
+
+  const walletInfo = getWalletInfo();
+  const isWalletConnected = walletInfo && walletInfo.connected;
+
   return (
     <div className="container px-4 py-8">
       <div 
