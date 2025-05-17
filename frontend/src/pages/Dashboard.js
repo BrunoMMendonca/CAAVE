@@ -86,7 +86,15 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Total Supply',
-        data: [12000000, 12500000, 13100000, 13400000, 13700000, 14200000, 14800000],
+        data: [
+          marketStats ? marketStats.total_supply * 0.95 : 12000000,
+          marketStats ? marketStats.total_supply * 0.96 : 12500000,
+          marketStats ? marketStats.total_supply * 0.97 : 13100000,
+          marketStats ? marketStats.total_supply * 0.98 : 13400000,
+          marketStats ? marketStats.total_supply * 0.99 : 13700000,
+          marketStats ? marketStats.total_supply * 0.995 : 14200000,
+          marketStats ? marketStats.total_supply : 14800000,
+        ],
         borderColor: '#2ebac6',
         backgroundColor: 'rgba(46, 186, 198, 0.1)',
         tension: 0.4,
@@ -94,7 +102,15 @@ const Dashboard = () => {
       },
       {
         label: 'Total Borrow',
-        data: [6500000, 6800000, 7200000, 7400000, 7800000, 8200000, 8500000],
+        data: [
+          marketStats ? marketStats.total_borrow * 0.95 : 6500000,
+          marketStats ? marketStats.total_borrow * 0.96 : 6800000,
+          marketStats ? marketStats.total_borrow * 0.97 : 7200000,
+          marketStats ? marketStats.total_borrow * 0.98 : 7400000,
+          marketStats ? marketStats.total_borrow * 0.99 : 7800000,
+          marketStats ? marketStats.total_borrow * 0.995 : 8200000,
+          marketStats ? marketStats.total_borrow : 8500000,
+        ],
         borderColor: '#b6509e',
         backgroundColor: 'rgba(182, 80, 158, 0.1)',
         tension: 0.4,
