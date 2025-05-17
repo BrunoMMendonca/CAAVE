@@ -97,6 +97,28 @@ const Header = () => {
     }
   };
 
+  // Check localStorage for wallet info on mount
+  useEffect(() => {
+    try {
+      const storedWalletInfo = localStorage.getItem('walletInfo');
+      if (storedWalletInfo) {
+        const parsedInfo = JSON.parse(storedWalletInfo);
+        if (parsedInfo && parsedInfo.connected) {
+          // We have stored wallet info, but need to reconnect
+          console.log('Found stored wallet info, attempting to reconnect...');
+          if (parsedInfo.name && window.cardano && window.cardano[parsedInfo.name]) {
+            handleSelectWallet(parsedInfo.name).catch(error => {
+              console.error('Failed to auto-reconnect wallet:', error);
+              localStorage.removeItem('walletInfo');
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking stored wallet info:', error);
+    }
+  }, []);
+
   // Clean up function for when component unmounts
   useEffect(() => {
     return () => {
