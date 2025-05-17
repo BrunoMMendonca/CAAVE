@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import AssetCard from '../components/AssetCard';
-import { mockUserAssets, mockMarkets } from '../data/mockData';
 import { Link } from 'react-router-dom';
 import { 
   Chart as ChartJS, 
@@ -15,6 +14,8 @@ import {
   Title 
 } from 'chart.js';
 import { Doughnut, Line } from 'react-chartjs-2';
+import { useMarkets } from '../context/MarketContext';
+import { useUser } from '../context/UserContext';
 
 ChartJS.register(
   ArcElement, 
