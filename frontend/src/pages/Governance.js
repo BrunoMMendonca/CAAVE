@@ -163,6 +163,7 @@ const Governance = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="bg-darkBlue border border-primary text-primary hover:bg-primary hover:bg-opacity-10 px-6 py-3 rounded-lg font-medium"
+              id="create-proposal-button"
             >
               Create Proposal
             </motion.button>
@@ -272,6 +273,7 @@ const Governance = () => {
                   <button 
                     className="gradient-button px-6 py-2 rounded-lg text-white font-medium"
                     onClick={() => handleVoteClick(proposal)}
+                    id={`vote-button-${proposal.id}`}
                   >
                     Vote
                   </button>
@@ -359,13 +361,14 @@ const Governance = () => {
       
       {/* Vote Modal */}
       {showVoteModal && selectedProposal && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" id="vote-modal">
           <div className="modal-content">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold text-lightText">Vote on Proposal</h3>
               <button 
                 className="text-mediumText hover:text-lightText"
                 onClick={() => setShowVoteModal(false)}
+                id="close-vote-modal"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -391,6 +394,7 @@ const Governance = () => {
                     className="mr-3" 
                     checked={voteType === 'for'}
                     onChange={() => setVoteType('for')}
+                    id="vote-for"
                   />
                   <div>
                     <div className="text-lightText font-medium">For</div>
@@ -405,6 +409,7 @@ const Governance = () => {
                     className="mr-3" 
                     checked={voteType === 'against'}
                     onChange={() => setVoteType('against')}
+                    id="vote-against"
                   />
                   <div>
                     <div className="text-lightText font-medium">Against</div>
@@ -419,6 +424,7 @@ const Governance = () => {
                     className="mr-3" 
                     checked={voteType === 'abstain'}
                     onChange={() => setVoteType('abstain')}
+                    id="vote-abstain"
                   />
                   <div>
                     <div className="text-lightText font-medium">Abstain</div>
@@ -438,6 +444,7 @@ const Governance = () => {
             <button 
               className="w-full gradient-button py-3 rounded-lg text-white font-medium"
               onClick={handleVote}
+              id="submit-vote-button"
             >
               Submit Vote
             </button>

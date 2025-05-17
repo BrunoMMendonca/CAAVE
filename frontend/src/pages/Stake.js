@@ -158,6 +158,7 @@ const Stake = () => {
               whileTap={{ scale: 0.95 }}
               className="gradient-button px-6 py-3 rounded-lg text-white font-medium"
               onClick={() => setShowStakeModal(true)}
+              id="stake-ada-button"
             >
               Stake ADA
             </motion.button>
@@ -263,10 +264,14 @@ const Stake = () => {
             <button 
               className="gradient-button px-5 py-2 rounded-lg text-white font-medium"
               onClick={() => setShowStakeModal(true)}
+              id="stake-more-button"
             >
               Stake More
             </button>
-            <button className="bg-darkBlue text-mediumText border border-gray-700 hover:text-lightText px-5 py-2 rounded-lg font-medium">
+            <button 
+              className="bg-darkBlue text-mediumText border border-gray-700 hover:text-lightText px-5 py-2 rounded-lg font-medium"
+              id="claim-rewards-button"
+            >
               Claim Rewards
             </button>
           </div>
@@ -349,13 +354,14 @@ const Stake = () => {
       
       {/* Stake Modal */}
       {showStakeModal && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" id="stake-modal">
           <div className="modal-content">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold text-lightText">Stake ADA</h3>
               <button 
                 className="text-mediumText hover:text-lightText"
                 onClick={() => setShowStakeModal(false)}
+                id="close-stake-modal"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -371,6 +377,7 @@ const Stake = () => {
                   <button 
                     className="ml-2 text-primary text-xs hover:underline"
                     onClick={handleUseMax}
+                    id="use-max-button"
                   >
                     MAX
                   </button>
@@ -383,6 +390,7 @@ const Stake = () => {
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full bg-darkerBlue text-lightText rounded-lg px-4 py-3 border border-gray-700 focus:border-primary focus:outline-none"
                   placeholder="0.00"
+                  id="stake-amount-input"
                 />
                 <div className="absolute right-3 top-3 flex items-center space-x-2">
                   <img 
@@ -418,6 +426,7 @@ const Stake = () => {
               className="w-full gradient-button py-3 rounded-lg text-white font-medium"
               onClick={handleStake}
               disabled={!amount}
+              id="submit-stake-button"
             >
               Stake ADA
             </button>
