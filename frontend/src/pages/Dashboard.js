@@ -139,7 +139,11 @@ const Dashboard = () => {
         }}
       >
         <div className="max-w-4xl">
-          <h1 className="text-3xl font-bold mb-3 text-lightText">Welcome to AaveADA</h1>
+          <h1 className="text-3xl font-bold mb-3 text-lightText">
+            {isWalletConnected 
+              ? `Welcome, ${walletInfo.displayAddress}` 
+              : 'Welcome to AaveADA'}
+          </h1>
           <p className="text-mediumText text-lg mb-6">
             The first decentralized lending protocol on Cardano blockchain.
             Deposit, borrow, and earn interest on crypto assets.
@@ -151,6 +155,14 @@ const Dashboard = () => {
             >
               Explore Markets
             </Link>
+            {!isWalletConnected && (
+              <button 
+                onClick={() => document.querySelector('button:contains("Connect Wallet")').click()}
+                className="bg-darkBlue px-6 py-3 rounded-lg text-lightText font-medium border border-gray-700 hover:border-primary"
+              >
+                Connect Wallet
+              </button>
+            )}
             <a 
               href="https://docs.aave.com" 
               target="_blank" 
