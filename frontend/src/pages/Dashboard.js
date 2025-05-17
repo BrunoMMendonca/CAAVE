@@ -29,15 +29,30 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
-  const yourSupplies = mockUserAssets.filter(asset => asset.yourSupply > 0);
-  const yourBorrows = mockUserAssets.filter(asset => asset.yourBorrow > 0);
+  // Get markets data
+  const { markets, loading: marketsLoading } = useMarkets();
+  const { userPosition, loading: userLoading } = useUser();
+  
+  if (marketsLoading) {
+    return (
+      <div className="container px-4 py-8">
+        <div className="text-center">
+          <p className="text-xl text-lightText">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Mock user data for now - in a real app you'd get this from the API
+  const yourSupplies = [];
+  const yourBorrows = [];
   
   // Calculate totals
   const netWorthUSD = yourSupplies.reduce((total, asset) => 
-    total + (asset.yourSupply * asset.priceUSD), 0);
+    total + parseFloat(asset.amount_usd || 0), 0);
   
   const totalBorrowedUSD = yourBorrows.reduce((total, asset) => 
-    total + (asset.yourBorrow * asset.priceUSD), 0);
+    total + parseFloat(asset.amount_usd || 0), 0);
   
   const availableToBorrowUSD = netWorthUSD * 0.8 - totalBorrowedUSD;
   
