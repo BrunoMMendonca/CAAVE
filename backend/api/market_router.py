@@ -124,11 +124,11 @@ async def get_market_stats(db = Depends(get_db)) -> Dict[str, Any]:
             }
             
         # Calculate aggregate statistics
-        total_supply = sum(market["total_supply"] for market in markets)
-        total_borrow = sum(market["total_borrow"] for market in markets)
+        total_supply = sum(float(market["total_supply"]) for market in markets)
+        total_borrow = sum(float(market["total_borrow"]) for market in markets)
         
-        markets_with_supply = [m for m in markets if m["total_supply"] > 0]
-        markets_with_borrow = [m for m in markets if m["total_borrow"] > 0]
+        markets_with_supply = [m for m in markets if float(m["total_supply"]) > 0]
+        markets_with_borrow = [m for m in markets if float(m["total_borrow"]) > 0]
         
         avg_supply_rate = sum(m["supply_apy"] for m in markets_with_supply) / len(markets_with_supply) if markets_with_supply else 0
         avg_borrow_rate = sum(m["borrow_apy"] for m in markets_with_borrow) / len(markets_with_borrow) if markets_with_borrow else 0
