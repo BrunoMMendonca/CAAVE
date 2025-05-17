@@ -106,8 +106,16 @@ const MarketTable = ({ markets, title }) => {
           <tbody>
             {sortedMarkets.map((market) => {
               // Calculate display values based on decimals
-              const totalSupply = parseFloat(market.total_supply) / Math.pow(10, market.decimals);
-              const totalBorrow = parseFloat(market.total_borrow) / Math.pow(10, market.decimals);
+              let totalSupply = 0;
+              let totalBorrow = 0;
+              
+              try {
+                const decimals = market.decimals || 0;
+                totalSupply = parseFloat(market.total_supply || '0') / Math.pow(10, decimals);
+                totalBorrow = parseFloat(market.total_borrow || '0') / Math.pow(10, decimals);
+              } catch (err) {
+                console.error("Error calculating values:", err);
+              }
               
               return (
                 <tr 
