@@ -3,6 +3,8 @@ import os
 from typing import Dict, List, Any, Optional
 import logging
 
+from settings import BLOCKFROST_API_KEY, BLOCKFROST_NETWORK
+
 logger = logging.getLogger(__name__)
 
 class CardanoService:
