@@ -8,8 +8,11 @@ const MarketContext = createContext();
 // Create the provider component
 export const MarketProvider = ({ children }) => {
   const [markets, setMarkets] = useState([]);
+  const [marketStats, setMarketStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [statsError, setStatsError] = useState(null);
 
   // Fetch markets from the API
   useEffect(() => {
@@ -29,6 +32,34 @@ export const MarketProvider = ({ children }) => {
     };
 
     fetchMarkets();
+  }, []);
+
+  // Fetch market statistics from the API
+  useEffect(() => {
+    const fetchMarketStats = async () => {
+      try {
+        setStatsLoading(true);
+        const data = await marketApi.getMarketStats();
+        setMarketStats(data);
+        setStatsError(null);
+      } catch (err) {
+        console.error('Error fetching market stats:', err);
+        setStatsError('Failed to fetch market statistics.');
+        // No mock data fallback for stats
+        setMarketStats({
+          total_supply: 0,
+          total_borrow: 0,
+          markets_count: 0,
+          avg_supply_rate: 0,
+          avg_borrow_rate: 0,
+          top_markets: []
+        });
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchMarketStats();
   }, []);
 
   // Get a single market by ID
@@ -59,12 +90,46 @@ export const MarketProvider = ({ children }) => {
     }
   };
 
+  // Format the market stats for display
+  const formatMarketStats = (stats) => {
+    if (!stats) return null;
+    
+    try {
+      // Format numbers for display (billions/millions)
+      const formatNumber = (num) => {
+        if (num >= 1e9) {
+          return (num / 1e9).toFixed(2) + 'B';
+        } else if (num >= 1e6) {
+          return (num / 1e6).toFixed(2) + 'M';
+        } else {
+          return num.toFixed(2);
+        }
+      };
+      
+      return {
+        ...stats,
+        formatted: {
+          total_supply: formatNumber(stats.total_supply),
+          total_borrow: formatNumber(stats.total_borrow),
+          avg_supply_rate: stats.avg_supply_rate.toFixed(2) + '%',
+          avg_borrow_rate: stats.avg_borrow_rate.toFixed(2) + '%',
+        }
+      };
+    } catch (error) {
+      console.error('Error formatting market stats:', error);
+      return stats;
+    }
+  };
+
   return (
     <MarketContext.Provider
       value={{
         markets,
         loading,
         error,
+        marketStats: marketStats ? formatMarketStats(marketStats) : null,
+        statsLoading,
+        statsError,
         getMarket,
         formatMarketData,
       }}
