@@ -1,14 +1,98 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import WalletModal from './WalletModal';
+import { 
+  connectWallet, 
+  disconnectWallet,
+  getWalletBalance, 
+  getWalletAddress,
+  formatWalletAddress,
+  formatAdaAmount
+} from '../utils/wallet';
 
 const Header = () => {
-  const [isConnected, setIsConnected] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const [walletInfo, setWalletInfo] = useState({
+    connected: false,
+    wallet: null,
+    address: null,
+    displayAddress: '',
+    balance: null,
+    displayBalance: '0',
+    name: ''
+  });
   
   const handleConnectWallet = () => {
-    setIsConnected(!isConnected);
+    if (walletInfo.connected) {
+      handleDisconnect();
+    } else {
+      setShowWalletModal(true);
+    }
   };
+
+  const handleSelectWallet = async (walletName) => {
+    try {
+      // Connect to selected wallet
+      const wallet = await connectWallet(walletName);
+      
+      // Get wallet address
+      const address = await getWalletAddress(wallet);
+      const displayAddress = formatWalletAddress(address);
+      
+      // Get wallet balance
+      const balance = await getWalletBalance(wallet);
+      const displayBalance = formatAdaAmount(balance);
+      
+      // Update wallet info
+      setWalletInfo({
+        connected: true,
+        wallet,
+        address,
+        displayAddress,
+        balance,
+        displayBalance,
+        name: walletName
+      });
+      
+      console.log(`Connected to ${walletName} wallet: ${displayAddress}`);
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+      alert(`Failed to connect wallet: ${error.message}`);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      if (walletInfo.wallet) {
+        await disconnectWallet(walletInfo.wallet);
+      }
+      
+      setWalletInfo({
+        connected: false,
+        wallet: null,
+        address: null,
+        displayAddress: '',
+        balance: null,
+        displayBalance: '0',
+        name: ''
+      });
+      
+      console.log('Wallet disconnected');
+    } catch (error) {
+      console.error('Failed to disconnect wallet:', error);
+    }
+  };
+
+  // Clean up function for when component unmounts
+  useEffect(() => {
+    return () => {
+      if (walletInfo.wallet) {
+        disconnectWallet(walletInfo.wallet).catch(console.error);
+      }
+    };
+  }, [walletInfo.wallet]);
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-darkerBlue z-50 shadow-lg border-b border-gray-800">
@@ -77,22 +161,38 @@ const Header = () => {
               </select>
             </div>
             
+            {walletInfo.connected && (
+              <div className="mr-4 bg-darkBlue rounded-lg px-3 py-2 text-sm">
+                <div className="text-lightText font-medium">
+                  {walletInfo.displayBalance} ADA
+                </div>
+              </div>
+            )}
+            
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className={`px-6 py-2 rounded-lg font-medium ${
-                isConnected 
+                walletInfo.connected 
                   ? 'bg-darkBlue text-primary border border-primary' 
                   : 'gradient-button text-white'
               }`}
               onClick={handleConnectWallet}
             >
-              {isConnected ? 'addr1q9...7tzq' : 'Connect Wallet'}
+              {walletInfo.connected ? walletInfo.displayAddress : 'Connect Wallet'}
             </motion.button>
           </div>
           
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
+            {walletInfo.connected && (
+              <div className="mr-3 bg-darkBlue rounded-lg px-2 py-1 text-xs">
+                <div className="text-lightText font-medium">
+                  {walletInfo.displayBalance} ADA
+                </div>
+              </div>
+            )}
+          
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-mediumText hover:text-lightText p-2"
@@ -168,17 +268,29 @@ const Header = () => {
                 <option value="testnet">Cardano Testnet</option>
               </select>
               <button
-                className="w-full gradient-button text-white px-6 py-2 rounded-lg font-medium"
+                className={`w-full px-3 py-2 rounded-md font-medium ${
+                  walletInfo.connected
+                    ? 'bg-darkBlue text-primary border border-primary'
+                    : 'gradient-button text-white'
+                }`}
                 onClick={() => {
-                  handleConnectWallet();
                   setIsMenuOpen(false);
+                  handleConnectWallet();
                 }}
               >
-                {isConnected ? 'addr1q9...7tzq' : 'Connect Wallet'}
+                {walletInfo.connected ? walletInfo.displayAddress : 'Connect Wallet'}
               </button>
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Wallet Connection Modal */}
+      {showWalletModal && (
+        <WalletModal 
+          onClose={() => setShowWalletModal(false)} 
+          onSelectWallet={handleSelectWallet}
+        />
       )}
     </header>
   );
