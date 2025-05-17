@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 class CardanoService:
     def __init__(self):
         # Get API key and network from environment variables
-        api_key = os.environ.get("BLOCKFROST_API_KEY")
-        network = os.environ.get("BLOCKFROST_NETWORK", "preprod")
+        api_key = BLOCKFROST_API_KEY
+        network = BLOCKFROST_NETWORK
         
         if not api_key:
             raise ValueError("BLOCKFROST_API_KEY environment variable is not set")
