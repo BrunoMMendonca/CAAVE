@@ -149,3 +149,84 @@ async def get_market_stats(db = Depends(get_db)) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error getting market stats: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting market stats: {str(e)}")
+
+@router.get("/recommendations")
+async def get_market_recommendations(db = Depends(get_db)) -> Dict[str, Any]:
+    """Get market recommendations based on current conditions"""
+    try:
+        # Get all markets
+        markets = await db.markets.find().to_list(1000)
+        
+        if not markets:
+            return {
+                "best_supply_opportunities": [],
+                "best_borrow_opportunities": [],
+                "safest_supply_markets": [],
+                "overall_recommendation": None
+            }
+            
+        # Find best supply opportunities (highest APY)
+        supply_opportunities = sorted(
+            [m for m in markets if m["can_supply"] and m["is_active"]], 
+            key=lambda x: x["supply_apy"], 
+            reverse=True
+        )[:3]
+        
+        # Find best borrowing opportunities (lowest APY)
+        borrow_opportunities = sorted(
+            [m for m in markets if m["can_borrow"] and m["is_active"]], 
+            key=lambda x: x["borrow_apy"]
+        )[:3]
+        
+        # Find safest markets (highest collateral factor)
+        safest_markets = sorted(
+            [m for m in markets if m["can_supply"] and m["is_active"]], 
+            key=lambda x: x["collateral_factor"], 
+            reverse=True
+        )[:3]
+        
+        # Calculate current market conditions
+        markets_with_supply = [m for m in markets if float(m["total_supply"]) > 0]
+        avg_supply_rate = sum(m["supply_apy"] for m in markets_with_supply) / len(markets_with_supply) if markets_with_supply else 0
+        
+        # Determine overall market recommendation
+        if avg_supply_rate > 5:
+            overall_rec = "Market supply rates are high - good time to supply assets"
+        elif avg_supply_rate < 2:
+            overall_rec = "Market supply rates are low - might be better to look for other opportunities"
+        else:
+            overall_rec = "Market conditions are balanced - consider both supply and borrow options"
+            
+        return {
+            "best_supply_opportunities": [
+                {
+                    "id": m["id"],
+                    "name": m["name"],
+                    "supply_apy": m["supply_apy"],
+                    "total_supply": m["total_supply"],
+                    "liquidity": m["liquidity"]
+                } for m in supply_opportunities
+            ],
+            "best_borrow_opportunities": [
+                {
+                    "id": m["id"],
+                    "name": m["name"],
+                    "borrow_apy": m["borrow_apy"],
+                    "total_borrow": m["total_borrow"],
+                    "liquidity": m["liquidity"]
+                } for m in borrow_opportunities
+            ],
+            "safest_supply_markets": [
+                {
+                    "id": m["id"],
+                    "name": m["name"],
+                    "collateral_factor": m["collateral_factor"],
+                    "supply_apy": m["supply_apy"],
+                    "liquidity": m["liquidity"]
+                } for m in safest_markets
+            ],
+            "overall_recommendation": overall_rec
+        }
+    except Exception as e:
+        logger.error(f"Error getting market recommendations: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting market recommendations: {str(e)}")
