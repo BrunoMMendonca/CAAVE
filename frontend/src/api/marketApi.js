@@ -18,4 +18,10 @@ export const marketApi = {
     const response = await apiClient.get('/markets/stats/overview');
     return response.data;
   },
+  
+  // Get market recommendations
+  getMarketRecommendations: async () => {
+    const response = await apiClient.get('/markets/recommendations');
+    return response.data;
+  },
 };
