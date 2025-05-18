@@ -111,6 +111,15 @@ class AaveADABackendTester:
             f"api/cardano/address/{test_address}",
             200
         )
+        
+    def test_market_recommendations(self):
+        """Test getting market recommendations"""
+        return self.run_test(
+            "Market Recommendations",
+            "GET",
+            "api/markets/recommendations",
+            200
+        )
 
 def main():
     # Get backend URL from environment variable or use default
