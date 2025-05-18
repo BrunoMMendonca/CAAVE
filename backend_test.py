@@ -178,6 +178,17 @@ def main():
     else:
         print(f"✅ Retrieved Cardano address info")
     
+    # Test market recommendations endpoint
+    recommendations_success, recommendations = tester.test_market_recommendations()
+    if not recommendations_success:
+        print("❌ Market recommendations test failed")
+    else:
+        print(f"✅ Retrieved market recommendations")
+        if recommendations:
+            print(f"  - Best Supply Opportunities: {len(recommendations.get('best_supply_opportunities', []))} markets")
+            print(f"  - Best Borrow Opportunities: {len(recommendations.get('best_borrow_opportunities', []))} markets")
+            print(f"  - Safest Supply Markets: {len(recommendations.get('safest_supply_markets', []))} markets")
+    
     # Print results
     print(f"\n📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
     return 0 if tester.tests_passed == tester.tests_run else 1
