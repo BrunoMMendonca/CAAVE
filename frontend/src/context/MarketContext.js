@@ -9,10 +9,13 @@ const MarketContext = createContext();
 export const MarketProvider = ({ children }) => {
   const [markets, setMarkets] = useState([]);
   const [marketStats, setMarketStats] = useState(null);
+  const [marketRecommendations, setMarketRecommendations] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statsError, setStatsError] = useState(null);
+  const [recommendationsError, setRecommendationsError] = useState(null);
 
   // Fetch markets from the API
   useEffect(() => {
@@ -60,6 +63,32 @@ export const MarketProvider = ({ children }) => {
     };
 
     fetchMarketStats();
+  }, []);
+  
+  // Fetch market recommendations from the API
+  useEffect(() => {
+    const fetchMarketRecommendations = async () => {
+      try {
+        setRecommendationsLoading(true);
+        const data = await marketApi.getMarketRecommendations();
+        setMarketRecommendations(data);
+        setRecommendationsError(null);
+      } catch (err) {
+        console.error('Error fetching market recommendations:', err);
+        setRecommendationsError('Failed to fetch market recommendations.');
+        // No mock data fallback for recommendations
+        setMarketRecommendations({
+          best_supply_opportunities: [],
+          best_borrow_opportunities: [],
+          safest_supply_markets: [],
+          overall_recommendation: null
+        });
+      } finally {
+        setRecommendationsLoading(false);
+      }
+    };
+
+    fetchMarketRecommendations();
   }, []);
 
   // Get a single market by ID
@@ -130,6 +159,9 @@ export const MarketProvider = ({ children }) => {
         marketStats: marketStats ? formatMarketStats(marketStats) : null,
         statsLoading,
         statsError,
+        marketRecommendations,
+        recommendationsLoading,
+        recommendationsError,
         getMarket,
         formatMarketData,
       }}
