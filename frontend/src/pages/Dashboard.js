@@ -1,32 +1,36 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import AssetCard from '../components/AssetCard';
 import { Link } from 'react-router-dom';
-import { 
-  Chart as ChartJS, 
-  ArcElement, 
-  Tooltip, 
-  Legend, 
+import { useMarkets } from '../context/MarketContext';
+import { useUser } from '../context/UserContext';
+import AssetCard from '../components/AssetCard';
+import MarketTable from '../components/MarketTable';
+import WalletModal from '../components/WalletModal';
+import MarketRecommendations from '../components/MarketRecommendations';
+import { motion } from 'framer-motion';
+import {
+  Chart as ChartJS,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
-  Title 
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  ArcElement,
 } from 'chart.js';
 import { Doughnut, Line } from 'react-chartjs-2';
-import { useMarkets } from '../context/MarketContext';
-import { useUser } from '../context/UserContext';
-import MarketRecommendations from '../components/MarketRecommendations';
 
 ChartJS.register(
   ArcElement, 
-  Tooltip, 
-  Legend,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
-  Title
+  Title,
+  Tooltip,
+  Legend,
+  Filler
 );
 
 const Dashboard = () => {
@@ -48,39 +52,56 @@ const Dashboard = () => {
       </div>
     );
   }
-  
-  // Mock user data for now - in a real app you'd get this from the API
-  const yourSupplies = [];
-  const yourBorrows = [];
-  
-  // Calculate totals
-  const netWorthUSD = yourSupplies.reduce((total, asset) => 
-    total + parseFloat(asset.amount_usd || 0), 0);
-  
-  const totalBorrowedUSD = yourBorrows.reduce((total, asset) => 
-    total + parseFloat(asset.amount_usd || 0), 0);
-  
-  const availableToBorrowUSD = netWorthUSD * 0.8 - totalBorrowedUSD;
-  
-  // Chart data for portfolio
-  const portfolioData = {
-    labels: ['Supplied', 'Borrowed'],
-    datasets: [
-      {
-        data: [netWorthUSD, totalBorrowedUSD],
-        backgroundColor: ['#2ebac6', '#b6509e'],
-        borderColor: ['transparent', 'transparent'],
-        borderWidth: 1,
-        cutout: '70%',
+
+  // Chart options
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: '#A0B0C0',
+          font: {
+            family: "'Inter', sans-serif"
+          }
+        }
       },
-    ],
+      tooltip: {
+        backgroundColor: '#1D2330',
+        titleFont: {
+          family: "'Inter', sans-serif"
+        },
+        bodyFont: {
+          family: "'Inter', sans-serif"
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: {
+          color: 'rgba(255, 255, 255, 0.05)'
+        },
+        ticks: {
+          color: '#A0B0C0',
+          font: {
+            family: "'Inter', sans-serif"
+          }
+        }
+      },
+      y: {
+        grid: {
+          color: 'rgba(255, 255, 255, 0.05)'
+        },
+        ticks: {
+          color: '#A0B0C0',
+          font: {
+            family: "'Inter', sans-serif"
+          }
+        }
+      }
+    }
   };
-  
-  // Chart data for health factor
-  const healthFactor = totalBorrowedUSD > 0 
-    ? (netWorthUSD * 0.8 / totalBorrowedUSD).toFixed(2) 
-    : '∞';
-  
+
   // Chart data for market trends
   const marketTrendData = {
     labels: ['1D', '2D', '3D', '4D', '5D', '6D', '7D'],
@@ -119,252 +140,188 @@ const Dashboard = () => {
       },
     ],
   };
-  
-  const marketTrendOptions = {
-    responsive: true,
+
+  // User position data for doughnut chart
+  let userData = {
+    labels: [],
+    datasets: [{
+      data: [],
+      backgroundColor: [],
+      borderWidth: 0
+    }]
+  };
+
+  // User wallet data
+  const walletBalance = userPosition?.walletBalance || 0;
+  const supplyBalance = userPosition?.supplyBalance || 0;
+  const borrowBalance = userPosition?.borrowBalance || 0;
+  const availableToBorrowUSD = userPosition?.availableToBorrowUSD || 0;
+  const netWorth = walletBalance + supplyBalance - borrowBalance;
+  const healthFactor = userPosition?.healthFactor || '∞';
+
+  // Prepare chart data if user has position
+  if (userPosition && (supplyBalance > 0 || borrowBalance > 0)) {
+    const labels = [];
+    const data = [];
+    const colors = [];
+    
+    // Add supply data
+    if (supplyBalance > 0) {
+      labels.push('Supply');
+      data.push(supplyBalance);
+      colors.push('#2ebac6');
+    }
+    
+    // Add wallet data
+    if (walletBalance > 0) {
+      labels.push('Wallet');
+      data.push(walletBalance);
+      colors.push('#33a0ff');
+    }
+    
+    // Add borrow data (as negative)
+    if (borrowBalance > 0) {
+      labels.push('Borrow');
+      data.push(borrowBalance);
+      colors.push('#b6509e');
+    }
+    
+    userData = {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: colors,
+        borderWidth: 0
+      }]
+    };
+  }
+
+  // Doughnut chart options
+  const doughnutOptions = {
     plugins: {
       legend: {
-        position: 'top',
+        position: 'bottom',
         labels: {
-          color: '#a5a8b6',
-        },
-      },
-    },
-    scales: {
-      y: {
-        ticks: {
-          color: '#a5a8b6',
-        },
-        grid: {
-          color: 'rgba(255, 255, 255, 0.05)',
-        },
-      },
-      x: {
-        ticks: {
-          color: '#a5a8b6',
-        },
-        grid: {
-          display: false,
-        },
-      },
-    },
-  };
-  
-  // Get wallet info from localStorage if available
-  const getWalletInfo = () => {
-    try {
-      const walletInfoStr = localStorage.getItem('walletInfo');
-      if (walletInfoStr) {
-        return JSON.parse(walletInfoStr);
+          color: '#A0B0C0',
+          font: {
+            family: "'Inter', sans-serif"
+          }
+        }
       }
-    } catch (e) {
-      console.error('Error parsing wallet info:', e);
-    }
-    return null;
+    },
+    cutout: '70%'
   };
 
-  const walletInfo = getWalletInfo();
-  const isWalletConnected = walletInfo && walletInfo.connected;
-
+  // Render
   return (
     <div className="container px-4 py-8">
-      <div 
-        className="card p-6 mb-10 relative overflow-hidden" 
-        style={{
-          backgroundImage: `linear-gradient(to right, rgba(27, 32, 52, 0.9), rgba(19, 23, 38, 0.9)), url(https://images.unsplash.com/photo-1639815188508-13f7370f664a)`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="max-w-4xl">
-          <h1 className="text-3xl font-bold mb-3 text-lightText">
-            {isWalletConnected 
-              ? `Welcome, ${walletInfo.displayAddress}` 
-              : 'Welcome to AaveADA'}
-          </h1>
-          <p className="text-mediumText text-lg mb-6">
-            The first decentralized lending protocol on Cardano blockchain.
-            Deposit, borrow, and earn interest on crypto assets.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <Link 
-              to="/markets" 
-              className="gradient-button px-6 py-3 rounded-lg text-white font-medium"
-            >
-              Explore Markets
-            </Link>
-            {!isWalletConnected && (
-              <button 
-                onClick={() => document.querySelector('header button:last-child').click()}
-                className="bg-darkBlue px-6 py-3 rounded-lg text-lightText font-medium border border-gray-700 hover:border-primary"
-              >
-                Connect Wallet
-              </button>
-            )}
-            <a 
-              href="https://docs.aave.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-darkBlue px-6 py-3 rounded-lg text-lightText font-medium border border-gray-700 hover:border-primary"
-            >
-              Read Docs
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {(yourSupplies.length > 0 || yourBorrows.length > 0) ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-          <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="card p-6"
-              >
-                <h3 className="text-lg font-semibold text-lightText mb-4">Your Supplies</h3>
-                {yourSupplies.length > 0 ? (
-                  <div className="space-y-4">
-                    {yourSupplies.map(asset => (
-                      <div key={asset.id} className="flex justify-between items-center">
-                        <div className="flex items-center">
-                          <img 
-                            src={asset.icon} 
-                            alt={asset.name} 
-                            className="w-8 h-8 rounded-full mr-3"
-                          />
-                          <div>
-                            <div className="font-medium text-lightText">{asset.name}</div>
-                            <div className="text-sm text-mediumText">{asset.yourSupply} {asset.symbol}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-medium text-lightText">${(asset.yourSupply * asset.priceUSD).toLocaleString()}</div>
-                          <div className="text-sm text-primary">{asset.supplyAPY}% APY</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-mediumText mb-4">You don't have any supplies yet</p>
-                    <Link 
-                      to="/markets" 
-                      className="gradient-button px-4 py-2 rounded-lg text-white font-medium inline-block"
-                    >
-                      Supply Now
-                    </Link>
-                  </div>
-                )}
-              </motion.div>
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="card p-6"
-              >
-                <h3 className="text-lg font-semibold text-lightText mb-4">Your Borrows</h3>
-                {yourBorrows.length > 0 ? (
-                  <div className="space-y-4">
-                    {yourBorrows.map(asset => (
-                      <div key={asset.id} className="flex justify-between items-center">
-                        <div className="flex items-center">
-                          <img 
-                            src={asset.icon} 
-                            alt={asset.name} 
-                            className="w-8 h-8 rounded-full mr-3"
-                          />
-                          <div>
-                            <div className="font-medium text-lightText">{asset.name}</div>
-                            <div className="text-sm text-mediumText">{asset.yourBorrow} {asset.symbol}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-medium text-lightText">${(asset.yourBorrow * asset.priceUSD).toLocaleString()}</div>
-                          <div className="text-sm text-secondary">{asset.borrowAPY}% APY</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-mediumText mb-4">You don't have any borrows yet</p>
-                    <Link 
-                      to="/markets" 
-                      className="bg-secondary px-4 py-2 rounded-lg text-white font-medium inline-block hover:bg-opacity-90"
-                    >
-                      Borrow Now
-                    </Link>
-                  </div>
-                )}
-              </motion.div>
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="card p-6 md:col-span-2"
-              >
-                <h3 className="text-lg font-semibold text-lightText mb-4">Market Trends</h3>
-                <div className="h-64">
-                  <Line data={marketTrendData} options={marketTrendOptions} />
-                </div>
-              </motion.div>
-            </div>
-          </div>
-          
+      <h1 className="text-3xl font-bold text-lightText mb-8">Dashboard</h1>
+      
+      {/* User Position */}
+      {userPosition ? (
+        <div className="mb-10">
+          <h2 className="section-title">Your Position</h2>
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="card p-6"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
           >
-            <h3 className="text-lg font-semibold text-lightText mb-6">Your Portfolio</h3>
-            <div className="relative flex flex-col items-center mb-6">
-              <div className="w-48 h-48 mb-4">
-                <Doughnut data={portfolioData} options={{ cutout: '70%', plugins: { legend: { display: false } } }} />
-              </div>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className="text-2xl font-bold text-lightText">${netWorthUSD.toLocaleString()}</div>
-                <div className="text-mediumText text-sm">Net Worth</div>
+            {/* Chart */}
+            <div className="card p-6 flex flex-col justify-center items-center">
+              <h3 className="text-xl font-semibold text-lightText mb-4">Net Worth</h3>
+              <div className="text-3xl font-bold text-primary mb-2">${netWorth.toLocaleString()}</div>
+              
+              <div className="w-full h-64 flex justify-center items-center">
+                {(supplyBalance > 0 || borrowBalance > 0) ? (
+                  <Doughnut data={userData} options={doughnutOptions} />
+                ) : (
+                  <div className="text-center text-mediumText">
+                    <p>No active positions</p>
+                    <p className="text-sm mt-2">Supply or borrow to see your position</p>
+                  </div>
+                )}
               </div>
             </div>
             
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-3 bg-darkBlue rounded-lg">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-primary mr-3"></div>
-                  <span className="text-mediumText">Supplied</span>
+            {/* Supply & Borrow Overview */}
+            <div className="card p-6">
+              <h3 className="text-xl font-semibold text-lightText mb-4">Supply & Borrow</h3>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-darkBlue p-4 rounded-lg">
+                  <div className="text-primary font-medium">Supply Balance</div>
+                  <div className="text-2xl font-bold text-lightText mt-1">${supplyBalance.toLocaleString()}</div>
                 </div>
-                <span className="text-lightText font-medium">${netWorthUSD.toLocaleString()}</span>
-              </div>
-              
-              <div className="flex justify-between items-center p-3 bg-darkBlue rounded-lg">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-secondary mr-3"></div>
-                  <span className="text-mediumText">Borrowed</span>
+                <div className="bg-darkBlue p-4 rounded-lg">
+                  <div className="text-secondary font-medium">Borrow Balance</div>
+                  <div className="text-2xl font-bold text-lightText mt-1">${borrowBalance.toLocaleString()}</div>
                 </div>
-                <span className="text-lightText font-medium">${totalBorrowedUSD.toLocaleString()}</span>
               </div>
               
-              <div className="flex justify-between items-center p-3 bg-darkBlue rounded-lg">
-                <span className="text-mediumText">Available to Borrow</span>
-                <span className="text-lightText font-medium">${availableToBorrowUSD.toLocaleString()}</span>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-mediumText">Current LTV</span>
+                  <span className="text-lightText font-medium">
+                    {supplyBalance > 0 
+                      ? ((borrowBalance / supplyBalance) * 100).toFixed(2) + '%'
+                      : '0.00%'
+                    }
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-mediumText">APY from supply</span>
+                  <span className="text-primary font-medium">
+                    {userPosition.netAPY ? '+' + userPosition.supplyAPY.toFixed(2) + '%' : '0.00%'}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-mediumText">APY from borrow</span>
+                  <span className="text-secondary font-medium">
+                    {userPosition.borrowAPY ? '-' + userPosition.borrowAPY.toFixed(2) + '%' : '0.00%'}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-mediumText">Net APY</span>
+                  <span className={`font-medium ${userPosition.netAPY >= 0 ? 'text-primary' : 'text-secondary'}`}>
+                    {userPosition.netAPY 
+                      ? (userPosition.netAPY > 0 ? '+' : '') + userPosition.netAPY.toFixed(2) + '%'
+                      : '0.00%'
+                    }
+                  </span>
+                </div>
               </div>
-              
-              <div className="flex justify-between items-center p-3 bg-darkBlue rounded-lg">
-                <span className="text-mediumText">Health Factor</span>
-                <span className={`font-medium ${
-                  healthFactor === '∞' || healthFactor > 2 
-                    ? 'text-green-500' 
-                    : healthFactor > 1.5 
-                      ? 'text-yellow-500' 
-                      : 'text-red-500'
-                }`}>
-                  {healthFactor}
-                </span>
+            </div>
+            
+            {/* Position Details */}
+            <div className="card p-6">
+              <h3 className="text-xl font-semibold text-lightText mb-4">Position Details</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 bg-darkBlue rounded-lg">
+                  <span className="text-mediumText">Wallet Balance</span>
+                  <span className="text-lightText font-medium">${walletBalance.toLocaleString()}</span>
+                </div>
+                
+                <div className="flex justify-between items-center p-3 bg-darkBlue rounded-lg">
+                  <span className="text-mediumText">Available to Borrow</span>
+                  <span className="text-lightText font-medium">${availableToBorrowUSD.toLocaleString()}</span>
+                </div>
+                
+                <div className="flex justify-between items-center p-3 bg-darkBlue rounded-lg">
+                  <span className="text-mediumText">Health Factor</span>
+                  <span className={`font-medium ${
+                    healthFactor === '∞' || healthFactor > 2 
+                      ? 'text-green-500' 
+                      : healthFactor > 1.5 
+                        ? 'text-yellow-500' 
+                        : 'text-red-500'
+                  }`}>
+                    {healthFactor}
+                  </span>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -469,6 +426,12 @@ const Dashboard = () => {
         </div>
       </div>
       
+      {/* Market Recommendations */}
+      <div className="mb-10">
+        <h2 className="section-title">Smart Market Recommendations</h2>
+        <MarketRecommendations />
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
         <motion.div 
           whileHover={{ y: -5 }}
@@ -526,6 +489,21 @@ const Dashboard = () => {
             Stake Now →
           </Link>
         </motion.div>
+      </div>
+      
+      {/* Market Trends Chart */}
+      <div className="mb-10">
+        <h2 className="section-title">Market Trends</h2>
+        <div className="card p-6">
+          <div className="h-96">
+            <Line options={chartOptions} data={marketTrendData} />
+          </div>
+        </div>
+      </div>
+      
+      <div className="mb-10">
+        <h2 className="section-title">All Markets</h2>
+        <MarketTable />
       </div>
     </div>
   );
