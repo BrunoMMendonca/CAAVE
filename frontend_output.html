@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="AaveADA - The liquidity protocol for Cardano blockchain"
+    />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>AaveADA | Cardano Lending Protocol</title>
+    <script>
+      // Add a notification if no Cardano wallets are detected
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          if (!window.cardano) {
+            const notice = document.createElement('div');
+            notice.style.position = 'fixed';
+            notice.style.top = '90px';
+            notice.style.left = '0';
+            notice.style.right = '0';
+            notice.style.backgroundColor = '#2ebac6';
+            notice.style.color = 'white';
+            notice.style.padding = '10px';
+            notice.style.textAlign = 'center';
+            notice.style.zIndex = '9999';
+            notice.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            notice.innerHTML = 'No Cardano wallets detected. Please install <a href="https://namiwallet.io/" target="_blank" style="color: white; font-weight: bold; text-decoration: underline;">Nami</a>, <a href="https://eternl.io/" target="_blank" style="color: white; font-weight: bold; text-decoration: underline;">Eternl</a>, or another Cardano wallet to connect.';
+            
+            document.body.appendChild(notice);
+          }
+        }, 2000);
+      });
+    </script>
+  <script defer src="/static/js/bundle.js"></script></head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>
