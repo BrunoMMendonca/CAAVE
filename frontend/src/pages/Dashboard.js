@@ -16,6 +16,7 @@ import {
 import { Doughnut, Line } from 'react-chartjs-2';
 import { useMarkets } from '../context/MarketContext';
 import { useUser } from '../context/UserContext';
+import MarketRecommendations from '../components/MarketRecommendations';
 
 ChartJS.register(
   ArcElement, 
